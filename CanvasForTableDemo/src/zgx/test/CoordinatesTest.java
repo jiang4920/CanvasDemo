@@ -17,40 +17,34 @@ import android.widget.ZoomControls;
  * 
  */
 public class CoordinatesTest extends Activity {
-	private int mXScale=2, mYScale=2;
 	private Coordinates mCoordinates;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.coordinates);
-
 		
 		mCoordinates = (Coordinates) findViewById(R.id.coordinates);
 		Paint paint1=new Paint();
 		paint1.setColor(Color.RED);
 		mCoordinates.addPoints(getTest1Points(),paint1);
-		mCoordinates.addTable(get());
+		mCoordinates.setFontSize(20);
+		mCoordinates.setTopTable(get());
+		mCoordinates.setBottomTable(get());
 		Paint paint2=new Paint();
 		paint2.setColor(Color.BLUE);
 		mCoordinates.addPoints(getTest2Points(),paint2);
-		mCoordinates.setScaleXY(mXScale, mYScale);
 		mCoordinates.setPerpix(42, 15);
-		// 设置标题
-		mCoordinates.setTitleHeight(20);
-		mCoordinates.setTitleName("身高记录表");
-		// 设置横轴纵轴单位
-		mCoordinates.setAxisNamePrickleXY("年龄", "天", "身高", "厘米");
 		// 设置边距
 		mCoordinates.setCoordinatesPadding(0,0,0,0);
-
 	}
 	
 	private String [][] get(){
 		String [][] date = {
-				{"a","b","c","d","e"},
-				{"a","b","c","d","e"},
-				{"a","b","c","d","e"}};
+				{"a","b","b","c","d","e"},
+				{"a","2012-03-15","b","c","中文","e"},
+				{"a","b","50","caaaaaaaaaaa","d","e"},
+				{"a","b","b","c","d","e"}};
 		return date;
 	}
 	

@@ -34,13 +34,9 @@ public class Coordinates extends View {
 	 */
 	private List<PointF[]> mPointsList;
 	private List<Paint> mPaintList;
-	/*
-	 * 标题
-	 */
-	private boolean mHasTitle;
-	private String mTitle;
 	private int mTitleHeight;
-	private PointF mTitlePoint;
+	private int mFontSize;
+	
 	/*
 	 * 边距
 	 */
@@ -53,14 +49,19 @@ public class Coordinates extends View {
 	
 	
 	/**
-	 * 时间表格的高度
+	 * 坐标上面表格的高度
 	 */
-	private int mTableDateHeight; 
+	private int mTableTopDateHeight; 
+	
+	/**
+     * 坐标下方表格的高度
+     */
+    private int mTableBottomDataHeight; 
 	
 	/**
 	 * 表格宽度，默认宽度为坐标系相等
 	 */
-	private int mTableDateWidth;
+	private int mTableWidth;
 	
 	/*
 	 * 横轴纵轴密度、长度和比例。
@@ -105,16 +106,13 @@ public class Coordinates extends View {
 		// 设置颜料
 		mPaint = new Paint();
 		mPaint.setColor(Color.BLACK);
+		mPaint.setAntiAlias(true);//画笔去掉锯齿
 		// 设置边距
 		setCoordinatesPadding(0, 0, 0, 0);
 		// 设置标题
-		setTitleHeight(20);
-		setTitleName("标题");
-
 		setTableItemHeight(20);
 		
-		mHasTitle = true;
-		mTitlePoint = new PointF(mLeftPad, mTitleHeight);
+		new PointF(mLeftPad, mTitleHeight);
 		// 设置密度
 		mXValuePerPix = 0.5f;
 		mYValuePerPix = 0.5f;
@@ -123,19 +121,11 @@ public class Coordinates extends View {
 		mYScale = 1;
 	}
 
-	/**
-	 * 设置标题高度
-	 */
-	public void setTitleHeight(int height) {
-		mTitleHeight = height;
+	
+	public void setFontSize(int fontSize){
+	    mFontSize = fontSize;
 	}
-
-	/**
-	 * 设置图表标题
-	 */
-	public void setTitleName(String titleName) {
-		mTitle = titleName;
-	}
+	
 
 	/**
 	 * 设置放大缩小倍数
@@ -160,12 +150,11 @@ public class Coordinates extends View {
 		mBottomPad = bottomPad + 40;
 	}
 
-	public void addTempreturePoints() {
-
-	}
-
 	/**
-	 * 添加一条曲线
+	 * <p>Title: addPoints</p>
+	 * <p>Description: 添加一条曲线</p>
+	 * @param points 一组坐标点
+	 * @param paint 定制画笔，目的是绘制多条坐标连线可以通过颜色进行区分
 	 */
 	public void addPoints(PointF[] points, Paint paint) {
 		if (points == null)
@@ -182,12 +171,6 @@ public class Coordinates extends View {
 		}
 	}
 
-	/**
-	 * 设置坐标名称和单位
-	 */
-	public void setAxisNamePrickleXY(String xName, String xPrickle,
-			String yName, String yPrickle) {
-	}
 
 	/**
 	 * 设置密度，根据xy坐标显示的数量来确定xy坐标的密度
@@ -214,19 +197,18 @@ public class Coordinates extends View {
 		// centerY = h / 2;
 		Log.v(TAG, "onSizeChanged W:" + w + " H:" + h);
 		mXLen = w - mLeftPad - mRightPad;
-		mYLen = h - mBottomPad - mTopPad - mTableDateHeight - mTitleHeight;
+		mYLen = h - mBottomPad - mTopPad - mTableTopDateHeight - mTableBottomDataHeight - mTitleHeight;
 		
-		mTableDateWidth = mXLen;
+		mTableWidth = mXLen;
 		
 		mXValuePerPix = ((float) mXLen) / (float) mXCount;
 		mYValuePerPix = ((float) mYLen) / (float) mYCount;
 		Log.v(TAG, "onSizeChanged mXValuePerPix:" + mXValuePerPix
 				+ " mYValuePerPix:" + mYValuePerPix);
-		mPointOrigin.set(mLeftPad, h - mBottomPad);
+		mPointOrigin.set(mLeftPad, h - mBottomPad - mTableBottomDataHeight);
 		mPointBase.set(mXLen / 2 + mPointOrigin.x, mPointOrigin.y - mYLen / 2);
 		mPointBaseValue.set(mXLen / 2 * mXValuePerPix / mXScale, mYLen / 2
 				* mYValuePerPix / mYScale);
-		// mPointZero.set(mLeftPad, h - mBottomPad);
 		super.onSizeChanged(w, h, oldw, oldh);
 	}
 
@@ -255,7 +237,7 @@ public class Coordinates extends View {
 		 */
 		drawMultiLines(canvas, mPointsList, mPaintList);
 		drawMultiDashLines(canvas, mXCount, mYCount);
-		drawTable(canvas, mTable,mPaint ,true);
+		drawTable(canvas, mPaint);
 	}
 
 	/**
@@ -399,51 +381,90 @@ public class Coordinates extends View {
 		}
 	}
 
-	private String[][] mTable;
+	private String[][] mTopTable;
+	private String[][] mBottomTable;
 	
-	private void drawTable(Canvas canvas, String[][] table, Paint paint, boolean isCenter){
-		paint.setAntiAlias(true);
-		
-		PointF p0 = new PointF(); 	//此坐标点为表格左上角点
-		PointF p1 = new PointF();		//此坐标点为表格右下角点，这两个点可以确定表格矩形框的形状
-		p0.set(mLeftPad, mTopPad  +mTitleHeight);
-		p1.set(mLeftPad + mXLen, mTopPad+ mTableDateHeight +mTitleHeight);
-		drawPoint(canvas, p0, paint);
-		drawPoint(canvas, p1, paint);
-		
-		int horLinesCount = table.length;
-		int verLinesCount = table[0].length;
-		
-		float tableItemHeight = mTableItemHeight;
-		//画表格横线
-		for(int i = 0; i <= horLinesCount; i++){
-			PointF from = new PointF(p0.x, p0.y+i*tableItemHeight);
-			PointF to = new PointF(p1.x, from.y);
-			drawLine(canvas, from, to, paint);
+	
+	/**
+	 * <p>Title: drawTable</p>
+	 * <p>Description: 绘制所有的表格,目前已经实现绘制顶部的表格和底部的表格</p>
+	 * @param canvas
+	 * @param paint
+	 * @param isCenter 
+	 */
+	private void drawTable(Canvas canvas, Paint paint){
+		if(mFontSize != 0){
+		    paint.setTextSize(mFontSize);
 		}
-		
-		float tableItemWidth = (float)mXLen/(float)verLinesCount;
-		//画表格竖线
-		for(int i = 0; i <= verLinesCount; i++){
-			PointF from = new PointF(p0.x + i*tableItemWidth , p0.y);
-			PointF to = new PointF(from.x, p1.y);
-			drawLine(canvas, from, to, paint);
-		}
-		if(isCenter){
-			for(int i = 0; i<table.length; i ++){	//i表示有i行数据
-				for(int j = 0;j< table[i].length; j++ ){	//j表示第i行的第j个数据
-					String tmp = table[i][j];
-					float textWidth = getTextWidth(paint, tmp);
-					float centerPointOffset = (tableItemWidth - textWidth)/2f;
-					canvas.drawText(table[i][j], p0.x +j*tableItemWidth + centerPointOffset, p0.y + (i+1)*tableItemHeight, paint);
-				}
-			}
-		}
+		PointF tp0 = new PointF(); 	//此坐标点为表格左上角点
+		PointF tp1 = new PointF();		//此坐标点为表格右下角点，这两个点可以确定表格矩形框的形状
+		tp0.set(mLeftPad, mTopPad  +mTitleHeight);
+		tp1.set(mLeftPad + mXLen, mTopPad+ mTableTopDateHeight +mTitleHeight);
+		TableRect topTableRect = new TableRect(tp0, tp1);
+		drawTable(canvas, mTopTable, topTableRect, paint, true);
+		PointF bp0 = new PointF(); 	//此坐标点为表格左上角点
+		PointF bp1 = new PointF();		//此坐标点为表格右下角点，这两个点可以确定表格矩形框的形状
+		bp0.set(mLeftPad, mTopPad +mTableTopDateHeight +mTitleHeight + mYLen);
+		bp1.set(mLeftPad + mXLen, mTopPad+ mTableTopDateHeight +mTitleHeight+mYLen + mTableBottomDataHeight);
+		TableRect bottomTableRect = new TableRect(bp0, bp1);
+		drawTable(canvas, mBottomTable, bottomTableRect, paint, true);
 	}
 	
-	public void addTable(String[][] table) {
-		mTable = table;
-		mTableDateHeight = mTableItemHeight*table.length;
+	/**
+	 * <p>Title: drawTable</p>
+	 * <p>Description: 绘制表格，根据二维数组直接转化成表格</p>
+	 * @param canvas 画布对象
+	 * @param table 二维数组，原始数据
+	 * @param tableRect 绘制表格的参考点，表格的矩形框的左上角和右下角两个点，这两点确定了表格的尺寸和位置
+	 * @param paint 画笔，可以设置绘制的颜色什么的
+	 * @param isCenter 绘制的文字是否居中显示
+	 */
+	private void drawTable(Canvas canvas, String[][] table, TableRect tableRect, Paint paint, boolean isCenter){
+	  //绘制Table的参考点
+        drawPoint(canvas, tableRect.p0, paint);
+        drawPoint(canvas, tableRect.p1, paint);
+        
+        int horLinesCount = table.length;
+        int verLinesCount = table[0].length;
+        
+        float tableItemHeight = mTableItemHeight;
+        //画表格横线
+        for(int i = 0; i <= horLinesCount; i++){
+            PointF from = new PointF(tableRect.p0.x, tableRect.p0.y+i*tableItemHeight);
+            PointF to = new PointF(tableRect.p1.x, from.y);
+            drawLine(canvas, from, to, paint);
+        }
+        
+        float tableItemWidth = (float)mXLen/(float)verLinesCount;
+        //画表格竖线
+        for(int i = 0; i <= verLinesCount; i++){
+            PointF from = new PointF(tableRect.p0.x + i*tableItemWidth , tableRect.p0.y);
+            PointF to = new PointF(from.x, tableRect.p1.y);
+            drawLine(canvas, from, to, paint);
+        }
+        if(isCenter){
+            for(int i = 0; i<table.length; i ++){   //i表示有i行数据
+                for(int j = 0;j< table[i].length; j++ ){    //j表示第i行的第j个数据
+                    String tmp = table[i][j];
+                    float textWidth = getTextWidth(paint, tmp);
+                    float centerPointXOffset = (tableItemWidth - textWidth)/2f;
+                    float textHeight = getFontHeight(paint);
+                    float centerPointYOffset = (tableItemHeight - textHeight)/2f;
+                    Log.v(TAG, "centerPointYOffset:"+centerPointYOffset);
+                    canvas.drawText(table[i][j], tableRect.p0.x +j*tableItemWidth + centerPointXOffset, tableRect.p0.y + centerPointYOffset + (i+1)*tableItemHeight, paint);
+                }
+            }
+        }
+	}
+	
+	public void setTopTable(String[][] table) {
+	    mTopTable = table;
+		mTableTopDateHeight = mTableItemHeight*table.length;
+	}
+	
+	public void setBottomTable(String[][] table) {
+	    mBottomTable = table;
+	    mTableBottomDataHeight = mTableItemHeight*table.length;
 	}
 	
 	
@@ -471,10 +492,8 @@ public class Coordinates extends View {
 	 * @param fontSize
 	 * @return
 	 */
-	public float getFontHeight(float fontSize) 
+	public float getFontHeight(Paint paint) 
 	{ 
-	   Paint paint = new Paint(); 
-	   paint.setTextSize(fontSize); 
 	   FontMetrics fm = paint.getFontMetrics(); 
 	   return (float)Math.ceil(fm.descent - fm.top) + 2; 
 	}
