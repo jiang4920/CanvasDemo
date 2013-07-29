@@ -25,12 +25,13 @@ public class CoordinatesTest extends Activity {
 		setContentView(R.layout.coordinates);
 		
 		mCoordinates = (Coordinates) findViewById(R.id.coordinates);
+		mCoordinates.setFontSize(30);	//设置字体大小
+		mCoordinates.setTableItemHeight(50);	//设置表格高度
+		mCoordinates.setTopTable(getTestTableData()); //添加顶部表格
+		mCoordinates.setBottomTable(getTestTableData()); //添加底部表格
 		Paint paint1=new Paint();
 		paint1.setColor(Color.RED);
 		mCoordinates.addPoints(getTest1Points(),paint1);
-		mCoordinates.setFontSize(20);
-		mCoordinates.setTopTable(get());
-		mCoordinates.setBottomTable(get());
 		Paint paint2=new Paint();
 		paint2.setColor(Color.BLUE);
 		mCoordinates.addPoints(getTest2Points(),paint2);
@@ -39,7 +40,7 @@ public class CoordinatesTest extends Activity {
 		mCoordinates.setCoordinatesPadding(0,0,0,0);
 	}
 	
-	private String [][] get(){
+	private String [][] getTestTableData(){
 		String [][] date = {
 				{"a","b","b","c","d","e"},
 				{"a","2012-03-15","b","c","中文","e"},

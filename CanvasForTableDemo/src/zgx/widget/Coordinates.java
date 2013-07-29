@@ -110,7 +110,7 @@ public class Coordinates extends View {
 		// 设置边距
 		setCoordinatesPadding(0, 0, 0, 0);
 		// 设置标题
-		setTableItemHeight(20);
+		setTableItemHeight(30);
 		
 		new PointF(mLeftPad, mTitleHeight);
 		// 设置密度
@@ -122,6 +122,10 @@ public class Coordinates extends View {
 	}
 
 	
+	/**
+	 * 设置坐标系和@表格中全局的字体大小
+	 * @param fontSize
+	 */
 	public void setFontSize(int fontSize){
 	    mFontSize = fontSize;
 	}
@@ -135,6 +139,10 @@ public class Coordinates extends View {
 		mYScale = yScale;
 	}
 
+	/**
+	 * 设置表格中每行的高度
+	 * @param height
+	 */
 	public void setTableItemHeight(int height){
 		mTableItemHeight = height;
 	}
@@ -226,20 +234,32 @@ public class Coordinates extends View {
 		 * 画背景色
 		 */
 		canvas.drawColor(Color.WHITE);
-		// 画直线
-		canvas.drawLine(mPointOrigin.x, mPointOrigin.y, mPointOrigin.x + mXLen,
-				mPointOrigin.y, mPaint);// 画X轴
-		canvas.drawLine(mPointOrigin.x, mPointOrigin.y, mPointOrigin.x,
-				mPointOrigin.y - mYLen, mPaint);// 画Y轴
+		//画坐标系
+		drawCoordinate(canvas);
 
 		/*
 		 * 画数据 所有外部需要在坐标轴上画的数据，都在这里进行绘制
 		 */
 		drawMultiLines(canvas, mPointsList, mPaintList);
-		drawMultiDashLines(canvas, mXCount, mYCount);
 		drawTable(canvas, mPaint);
 	}
-
+	
+	/**
+	 * 画坐标系，包括坐标系的边框和虚线
+	 * @param canvas
+	 */
+	private void drawCoordinate(Canvas canvas){
+				// 画直线
+//				canvas.drawLine(mPointOrigin.x, mPointOrigin.y, mPointOrigin.x + mXLen,
+//						mPointOrigin.y, mPaint);// 画X轴
+				canvas.drawLine(mPointOrigin.x, mPointOrigin.y, mPointOrigin.x,
+						mPointOrigin.y - mYLen, mPaint);// 画Y轴
+				canvas.drawLine(mPointOrigin.x + mXLen, mPointOrigin.y, mPointOrigin.x + mXLen,
+						mPointOrigin.y - mYLen, mPaint);// 画坐标系的右边黑线
+				//画坐标系上面的虚线
+				drawMultiDashLines(canvas, mXCount, mYCount);
+	}
+	
 	/**
 	 * 绘制虚线
 	 * @param canvas
@@ -448,10 +468,12 @@ public class Coordinates extends View {
                     String tmp = table[i][j];
                     float textWidth = getTextWidth(paint, tmp);
                     float centerPointXOffset = (tableItemWidth - textWidth)/2f;
-                    float textHeight = getFontHeight(paint);
-                    float centerPointYOffset = (tableItemHeight - textHeight)/2f;
+                    float textHeight = paint.getTextSize();
+                    
+                    float centerPointYOffset = (tableItemHeight - textHeight)/2f +2;//多出来的2是因为从界面显示上看需要再往上移动一点
+                    Log.v(TAG, "textHeight:"+textHeight + " tableItemHeight:" + tableItemHeight);
                     Log.v(TAG, "centerPointYOffset:"+centerPointYOffset);
-                    canvas.drawText(table[i][j], tableRect.p0.x +j*tableItemWidth + centerPointXOffset, tableRect.p0.y + centerPointYOffset + (i+1)*tableItemHeight, paint);
+                    canvas.drawText(table[i][j], tableRect.p0.x +j*tableItemWidth + centerPointXOffset, tableRect.p0.y -centerPointYOffset + (i+1)*tableItemHeight, paint);
                 }
             }
         }
@@ -495,7 +517,7 @@ public class Coordinates extends View {
 	public float getFontHeight(Paint paint) 
 	{ 
 	   FontMetrics fm = paint.getFontMetrics(); 
-	   return (float)Math.ceil(fm.descent - fm.top) + 2; 
+	   return (float)Math.ceil(fm.descent - fm.ascent); 
 	}
 	
 }
