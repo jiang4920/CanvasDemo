@@ -62,7 +62,10 @@ public class Coordinates extends View {
 	 * 表格宽度，默认宽度为坐标系相等
 	 */
 	private int mTableWidth;
-	
+	/**
+	 * 表格每项的宽度
+	 */
+	private int mTableItemWidth;
 	/*
 	 * 横轴纵轴密度、长度和比例。
 	 */
@@ -70,6 +73,7 @@ public class Coordinates extends View {
 	private int mXLen, mYLen;
 	private float mXScale, mYScale;
 
+	
 	/**
 	 * 横轴纵轴点数量
 	 */
@@ -82,11 +86,12 @@ public class Coordinates extends View {
 	 * 参考坐标逻辑中心坐标
 	 */
 	private PointF mPointBaseValue = new PointF();
-	/*
+	/**
 	 * 交叉点坐标中心点坐标原点物理坐标点
 	 */
 	private PointF mPointOrigin = new PointF();
 
+	
 	/*
 	 * 自定义控件一般写两个构造方法 CoordinatesView(Context context)用于java硬编码创建控件
 	 * 如果想要让自己的控件能够通过xml来产生就必须有第2个构造方法 CoordinatesView(Context context,
@@ -204,16 +209,17 @@ public class Coordinates extends View {
 		// centerX = w / 2;
 		// centerY = h / 2;
 		Log.v(TAG, "onSizeChanged W:" + w + " H:" + h);
-		mXLen = w - mLeftPad - mRightPad;
-		mYLen = h - mBottomPad - mTopPad - mTableTopDateHeight - mTableBottomDataHeight - mTitleHeight;
 		
-		mTableWidth = mXLen;
+		mTableWidth = w - mLeftPad - mRightPad;
+		mTableItemWidth = mTableWidth/mTopTable[0].length;	//mTopTable[0].length表示表格的行数
+		mXLen = mTableWidth - mTableItemWidth;	//表格的宽度，也是整个坐标系的宽度
+		mYLen = h - mBottomPad - mTopPad - mTableTopDateHeight - mTableBottomDataHeight - mTitleHeight;
 		
 		mXValuePerPix = ((float) mXLen) / (float) mXCount;
 		mYValuePerPix = ((float) mYLen) / (float) mYCount;
 		Log.v(TAG, "onSizeChanged mXValuePerPix:" + mXValuePerPix
 				+ " mYValuePerPix:" + mYValuePerPix);
-		mPointOrigin.set(mLeftPad, h - mBottomPad - mTableBottomDataHeight);
+		mPointOrigin.set(mLeftPad + mTableItemWidth, h - mBottomPad - mTableBottomDataHeight);
 		mPointBase.set(mXLen / 2 + mPointOrigin.x, mPointOrigin.y - mYLen / 2);
 		mPointBaseValue.set(mXLen / 2 * mXValuePerPix / mXScale, mYLen / 2
 				* mYValuePerPix / mYScale);
@@ -254,6 +260,8 @@ public class Coordinates extends View {
 //						mPointOrigin.y, mPaint);// 画X轴
 				canvas.drawLine(mPointOrigin.x, mPointOrigin.y, mPointOrigin.x,
 						mPointOrigin.y - mYLen, mPaint);// 画Y轴
+				canvas.drawLine(mLeftPad, mPointOrigin.y, mLeftPad,
+						mPointOrigin.y - mYLen, mPaint);// 画左边框
 				canvas.drawLine(mPointOrigin.x + mXLen, mPointOrigin.y, mPointOrigin.x + mXLen,
 						mPointOrigin.y - mYLen, mPaint);// 画坐标系的右边黑线
 				//画坐标系上面的虚线
@@ -419,13 +427,13 @@ public class Coordinates extends View {
 		PointF tp0 = new PointF(); 	//此坐标点为表格左上角点
 		PointF tp1 = new PointF();		//此坐标点为表格右下角点，这两个点可以确定表格矩形框的形状
 		tp0.set(mLeftPad, mTopPad  +mTitleHeight);
-		tp1.set(mLeftPad + mXLen, mTopPad+ mTableTopDateHeight +mTitleHeight);
+		tp1.set(mLeftPad + mTableWidth, mTopPad+ mTableTopDateHeight +mTitleHeight);
 		TableRect topTableRect = new TableRect(tp0, tp1);
 		drawTable(canvas, mTopTable, topTableRect, paint, true);
 		PointF bp0 = new PointF(); 	//此坐标点为表格左上角点
 		PointF bp1 = new PointF();		//此坐标点为表格右下角点，这两个点可以确定表格矩形框的形状
 		bp0.set(mLeftPad, mTopPad +mTableTopDateHeight +mTitleHeight + mYLen);
-		bp1.set(mLeftPad + mXLen, mTopPad+ mTableTopDateHeight +mTitleHeight+mYLen + mTableBottomDataHeight);
+		bp1.set(mLeftPad + mTableWidth, mTopPad+ mTableTopDateHeight +mTitleHeight+mYLen + mTableBottomDataHeight);
 		TableRect bottomTableRect = new TableRect(bp0, bp1);
 		drawTable(canvas, mBottomTable, bottomTableRect, paint, true);
 	}
@@ -455,7 +463,7 @@ public class Coordinates extends View {
             drawLine(canvas, from, to, paint);
         }
         
-        float tableItemWidth = (float)mXLen/(float)verLinesCount;
+        float tableItemWidth = mTableItemWidth;
         //画表格竖线
         for(int i = 0; i <= verLinesCount; i++){
             PointF from = new PointF(tableRect.p0.x + i*tableItemWidth , tableRect.p0.y);
