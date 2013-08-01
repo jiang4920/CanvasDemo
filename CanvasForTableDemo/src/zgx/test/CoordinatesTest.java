@@ -29,13 +29,13 @@ public class CoordinatesTest extends Activity {
 		mCoordinates.setTableItemHeight(50);	//设置表格高度
 		mCoordinates.setTopTable(getTestTableData()); //添加顶部表格
 		mCoordinates.setBottomTable(getTestTableData()); //添加底部表格
+		mCoordinates.setRulerFontSize(15); //设置刻度尺字体大小，默认是10
 		Paint paint1=new Paint();
 		paint1.setColor(Color.RED);
 		mCoordinates.addPoints(getTest1Points(),paint1);
 		Paint paint2=new Paint();
 		paint2.setColor(Color.BLUE);
 		mCoordinates.addPoints(getTest2Points(),paint2);
-		mCoordinates.setPerpix(42, 15);
 		// 设置边距
 		mCoordinates.setCoordinatesPadding(0,0,0,0);
 	}

@@ -12,6 +12,9 @@ import android.graphics.Paint.FontMetrics;
 import android.graphics.Path;
 import android.graphics.PathEffect;
 import android.graphics.PointF;
+import android.text.Layout.Alignment;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -77,7 +80,7 @@ public class Coordinates extends View {
 	/**
 	 * 横轴纵轴点数量
 	 */
-	private int mXCount, mYCount;
+	private int mXCount = 42, mYCount = 20;
 	/**
 	 * 参考坐标物理中心坐标
 	 */
@@ -112,6 +115,11 @@ public class Coordinates extends View {
 		mPaint = new Paint();
 		mPaint.setColor(Color.BLACK);
 		mPaint.setAntiAlias(true);//画笔去掉锯齿
+		
+		mSmallSizePaint = new Paint();
+		mSmallSizePaint.setColor(Color.BLACK);
+		mSmallSizePaint.setTextSize(12);
+		mSmallSizePaint.setAntiAlias(true);//画笔去掉锯齿
 		// 设置边距
 		setCoordinatesPadding(0, 0, 0, 0);
 		// 设置标题
@@ -189,9 +197,9 @@ public class Coordinates extends View {
 	 * 设置密度，根据xy坐标显示的数量来确定xy坐标的密度
 	 * 
 	 * @param xCount
-	 *            设置x坐标轴的点的个数
+	 *            设置x坐标轴的点的个数,默认42
 	 * @param yCount
-	 *            设置y坐标轴的点的个数
+	 *            设置y坐标轴的点的个数,默认20
 	 */
 	public void setPerpix(int xCount, int yCount) {
 		Log.v(TAG, "setPerpix");
@@ -266,6 +274,65 @@ public class Coordinates extends View {
 						mPointOrigin.y - mYLen, mPaint);// 画坐标系的右边黑线
 				//画坐标系上面的虚线
 				drawMultiDashLines(canvas, mXCount, mYCount);
+				
+				//画刻度尺
+				drawMultiRuler(canvas, mSmallSizePaint);
+	}
+	
+	/**
+	 * 用来绘制小字即坐标刻度
+	 */
+	private Paint mSmallSizePaint;
+	
+	public void setRulerFontSize(int size){
+		mSmallSizePaint.setTextSize(size);
+	}
+	
+	/**
+	 * 绘制刻度尺
+	 */
+	private void drawMultiRuler(Canvas canvas, Paint paint){
+		int divider = mTableItemWidth/3;//间隔距离，实际上并非间隔距离，是每一列坐标刻度的宽度空间
+		drawRuler(canvas,30, 45, new PointF(mPointOrigin.x,mPointOrigin.y), new PointF(mPointOrigin.x,mPointOrigin.y-mYLen), "体温(℃)", paint );
+		drawRuler(canvas,50, 200, new PointF(mPointOrigin.x -divider,mPointOrigin.y), new PointF(mPointOrigin.x -divider,mPointOrigin.y-mYLen),"脉搏(次/min)", paint );
+		drawRuler(canvas,0, 150, new PointF(mPointOrigin.x -divider*2,mPointOrigin.y), new PointF(mPointOrigin.x -divider*2,mPointOrigin.y-mYLen),"呼吸(次/min)", paint );
+	}
+	
+	/**
+	 * 绘制的原则是Y坐标表示有效数值，横坐标为时间，Y坐标只使用0-15这些逻辑坐标点，15-20的点位置用来绘制单位
+	 * 实际上有一些坐标刻度是不需要显示的，比如温度不可能在35度以下
+	 * @param canvas 画布
+	 * @param min 刻度的最小值
+	 * @param max 刻度的最大值
+	 * @param minFrom 最下方点（第一个点）物理坐标点
+	 * @param maxTo 最上方点（最后一个点）物理坐标点
+	 * @param unitText 单位文字
+	 * @param paint 画笔
+	 */
+	
+	private void drawRuler(Canvas canvas, int min, int max, PointF minFrom, PointF maxTo, String unitText,Paint paint){
+		int count = 15;
+		int p = (max-min)/15;//这里取了一个巧，max和min的差值是15的倍数,这样显示的刻度总会是整数
+		float fontWidth = 0;
+		for(int i =0; i<= count; i++){
+			String text = ""+(min+i * p);
+			fontWidth = getTextWidth(paint,text);
+			//minFrom.x - fontWidth表示文字相对于minFrom这个点右侧对齐minFrom为文字右下角的点，为了文字不与底部线条重合文字向上移动了2个像素
+			canvas.drawText(text,minFrom.x - fontWidth, minFrom.y+(maxTo.y-minFrom.y) *i/mYCount - 2, paint);	
+		}
+		drawText(canvas,unitText,minFrom.x-fontWidth ,maxTo.y, paint, 90  );//字体旋转后的居中显示太难了，暂时只能估计一个位置
+	}
+	
+	void drawText(Canvas canvas ,String text , float x ,float y,Paint paint ,float angle){  
+		if (angle != 0) {
+			//旋转画布
+			canvas.rotate(angle, x, y);
+		}
+		canvas.drawText(text, x, y, paint);
+		if (angle != 0) {
+			//反向旋转画布，现在就恢复旋转前的状态，这样再使用canvas绘制其他组件的时候才能正常
+			canvas.rotate(-angle, x, y);
+		}
 	}
 	
 	/**
