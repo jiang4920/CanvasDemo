@@ -1,6 +1,7 @@
 package zgx.test;
 
 import zgx.widget.Coordinates;
+import zgx.widget.ThreeTestTask;
 import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -38,6 +39,8 @@ public class CoordinatesTest extends Activity {
 		mCoordinates.addPoints(getTest2Points(),paint2);
 		// …Ë÷√±ﬂæ‡
 		mCoordinates.setCoordinatesPadding(0,0,0,0);
+		new ThreeTestTask().execute("http://192.168.1.150:8080/NurseThreeTestRecord.xml");
+		
 	}
 	
 	private String [][] getTestTableData(){

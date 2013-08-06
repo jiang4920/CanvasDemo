@@ -284,6 +284,10 @@ public class Coordinates extends View {
 	 */
 	private Paint mSmallSizePaint;
 	
+	/**
+	 * 设置刻度尺上面的字体大小，包括单位
+	 * @param size 字体大小
+	 */
 	public void setRulerFontSize(int size){
 		mSmallSizePaint.setTextSize(size);
 	}
