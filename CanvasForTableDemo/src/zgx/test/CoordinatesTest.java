@@ -39,7 +39,7 @@ public class CoordinatesTest extends Activity {
 		mCoordinates.addPoints(getTest2Points(),paint2);
 		// …Ë÷√±ﬂæ‡
 		mCoordinates.setCoordinatesPadding(0,0,0,0);
-		new ThreeTestTask().execute("http://192.168.1.150:8080/NurseThreeTestRecord.xml");
+		new ThreeTestTask().execute("http://192.168.1.151:8080/html/NurseThreeTestRecord.xml");
 		
 	}
 	

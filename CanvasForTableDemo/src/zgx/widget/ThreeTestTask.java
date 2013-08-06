@@ -7,22 +7,13 @@ import java.net.URLConnection;
 
 import android.os.AsyncTask;
 
-public class ThreeTestTask extends AsyncTask<String, String, NurseThreeTestRecord> {
+public class ThreeTestTask extends
+		AsyncTask<String, String, NurseThreeTestRecord> {
 	private static final String TAG = "CoordinatesTest ThreeTestTask.java";
 
 	@Override
 	protected NurseThreeTestRecord doInBackground(String... params) {
-		URL url;
-		try {
-			url = new URL(params[0]);
-			URLConnection conn = url.openConnection();
-			return new NurseThreeTestRecord().domParse(conn.getInputStream());
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+		return new NurseThreeTestRecord().domParse(params[0]);
 	}
 
 	@Override
